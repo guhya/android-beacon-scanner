@@ -484,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
 
     private void populateBeacon(){
         try {
-            String jsonResult = new GetBeaconTask().execute("http://intra.ewideplus.com/ewIntraBeacon/getBeaconList.asp").get();
+            String jsonResult = new GetBeaconTask().execute("").get();
             Type type = new TypeToken<List<EwBeacon>>(){}.getType();
             List<EwBeacon> list = new Gson().fromJson(jsonResult, type);
             beaconMap = new HashMap<String, EwBeacon>();
