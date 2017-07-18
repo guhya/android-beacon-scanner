@@ -1,5 +1,7 @@
 package com.bridou_n.beaconscanner.models;
 
+import com.bridou_n.beaconscanner.utils.EwBeacon;
+
 import java.util.Date;
 
 import io.realm.RealmObject;
@@ -210,5 +212,14 @@ public class BeaconSaved extends RealmObject {
 
     public void setUptime(long uptime) {
         this.uptime = uptime;
+    }
+
+
+    private EwBeacon ewBeacon;
+    public EwBeacon getEwBeacon() {
+        return ewBeacon;
+    }
+    public void setEwBeacon(EwBeacon ewBeacon) {
+        this.ewBeacon = ewBeacon;
     }
 }

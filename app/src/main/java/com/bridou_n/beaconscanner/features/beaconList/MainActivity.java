@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,10 +37,14 @@ import com.bridou_n.beaconscanner.features.settings.SettingsActivity;
 import com.bridou_n.beaconscanner.models.BeaconSaved;
 import com.bridou_n.beaconscanner.utils.BluetoothManager;
 import com.bridou_n.beaconscanner.utils.DividerItemDecoration;
+import com.bridou_n.beaconscanner.utils.EwBeacon;
+import com.bridou_n.beaconscanner.utils.GetBeaconTask;
 import com.bridou_n.beaconscanner.utils.PreferencesHelper;
 import com.getkeepsafe.taptargetview.TapTarget;
 import com.getkeepsafe.taptargetview.TapTargetView;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -47,9 +52,12 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor;
 
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -97,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
 
     @BindView(R.id.scan_fab) FloatingActionButton scanFab;
 
+    private Map<String, EwBeacon> beaconMap = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +118,9 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
         toolbar.inflateMenu(R.menu.main_menu);
         progress.getIndeterminateDrawable().setColorFilter(ContextCompat.getColor(this, R.color.progressColor),
                 android.graphics.PorterDuff.Mode.MULTIPLY);
+
+        //Populate beacon from database
+        populateBeacon();
 
         beaconResults = realm.where(BeaconSaved.class).findAllSortedAsync(new String[]{"lastMinuteSeen", "distance"}, new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
 
@@ -229,6 +242,12 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
                             beacon.setUUID(b.getId1().toString());
                             beacon.setMajor(b.getId2().toString());
                             beacon.setMinor(b.getId3().toString());
+
+                            //Inject beacon mapped beacon from database
+                            final String beaconId =  b.getId1().toString() + "#" + b.getId2().toString() + "#" + b.getId3().toString();
+                            Log.d("ewide", "" + beaconId);
+                            EwBeacon eb = beaconMap.get(beaconId.toUpperCase());
+                            beacon.setEwBeacon(eb);
                         }
 
                         Bundle infos = new Bundle();
@@ -309,6 +328,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
                     .subscribe(e -> {
                         if (e instanceof Events.RangeBeacon) {
                             updateUiWithBeaconsArround(((Events.RangeBeacon) e).getBeacons());
+                            Thread.sleep(1000);
                         }
                     });
 
@@ -461,4 +481,25 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
         realm.close();
         super.onDestroy();
     }
+
+    private void populateBeacon(){
+        try {
+            String jsonResult = new GetBeaconTask().execute("http://intra.ewideplus.com/ewIntraBeacon/getBeaconList.asp").get();
+            Type type = new TypeToken<List<EwBeacon>>(){}.getType();
+            List<EwBeacon> list = new Gson().fromJson(jsonResult, type);
+            beaconMap = new HashMap<String, EwBeacon>();
+            for (int i=0;i<list.size();i++) {
+                EwBeacon x = list.get(i);
+                Log.d("ewide", "" + x.getBeaconId() + " " + x.getLocation());
+                beaconMap.put(x.getBeaconId(), x);
+            }
+
+            Snackbar.make(this.rootView, "Getting device list", Snackbar.LENGTH_LONG).show();
+            Log.d("ewide", "" + jsonResult);
+        }catch (Exception e){
+            Log.d("ewide", "Cannot get beacon device list");
+            e.printStackTrace();
+        }
+    }
+
 }

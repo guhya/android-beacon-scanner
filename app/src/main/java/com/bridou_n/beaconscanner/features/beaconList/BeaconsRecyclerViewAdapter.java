@@ -4,13 +4,10 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bridou_n.beaconscanner.R;
@@ -48,7 +45,6 @@ public class BeaconsRecyclerViewAdapter extends RealmRecyclerViewAdapter<BeaconS
     public static class BaseHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.more_info) View moreInfo;
         @BindView(R.id.beacon_type) TextView beaconType;
-        @BindView(R.id.address) TextView address;
         @BindView(R.id.distance) TextView distance;
         @BindView(R.id.distance_qualifier) TextView distanceQualifier;
         @BindView(R.id.rssi) TextView rssi;
@@ -107,8 +103,6 @@ public class BeaconsRecyclerViewAdapter extends RealmRecyclerViewAdapter<BeaconS
 
     public static class IBeaconAltBeaconHolder extends BaseHolder {
         @BindView(R.id.proximity_uuid) TextView proximityUUID;
-        @BindView(R.id.major) TextView major;
-        @BindView(R.id.minor) TextView minor;
 
         public IBeaconAltBeaconHolder(View itemView, BeaconsRecyclerViewAdapter adapter) {
             super(itemView, adapter);
@@ -161,7 +155,6 @@ public class BeaconsRecyclerViewAdapter extends RealmRecyclerViewAdapter<BeaconS
             BeaconSaved b = getItem(position);
 
             holder.moreInfo.setVisibility(expandedPosition == position ? View.VISIBLE : View.GONE);
-            holder.address.setText(b.getBeaconAddress());
             holder.distance.setText(String.format(Locale.getDefault(), "%.2f", b.getDistance()));
             holder.distanceQualifier.setText(getDistanceQualifier(b.getDistance()));
             holder.rssi.setText(String.format(Locale.getDefault(), "%d", b.getRSSI()));
@@ -195,17 +188,16 @@ public class BeaconsRecyclerViewAdapter extends RealmRecyclerViewAdapter<BeaconS
                     eddyUrl.beaconType.setText(String.format(Locale.getDefault(), "%s%s",
                             ctx.getString(R.string.eddystone_url),
                             b.isHasTelemetryData() ? ctx.getString(R.string.plus_tlm) : ""));
-                    eddyUrl.address.setText(b.getBeaconAddress());
                     eddyUrl.url.setText(b.getURL());
                     break;
                 case VIEW_TYPE_IBEAON_ALTBEACON:
                     IBeaconAltBeaconHolder h = (IBeaconAltBeaconHolder) holder;
-
-                    h.beaconType.setText(String.format(Locale.getDefault(), "%s",
-                            b.getBeaconType() == BeaconSaved.TYPE_IBEACON ? ctx.getString(R.string.ibeacon) : ctx.getString(R.string.altbeacon)));
-                    h.proximityUUID.setText(b.getUUID());
-                    h.major.setText(b.getMajor());
-                    h.minor.setText(b.getMinor());
+                    String title = b.getBeaconType() == BeaconSaved.TYPE_IBEACON ? ctx.getString(R.string.ibeacon) : ctx.getString(R.string.altbeacon);
+                    if(b.getEwBeacon() != null){
+                        title = b.getEwBeacon().getLocation();
+                    }
+                    h.beaconType.setText(String.format(Locale.getDefault(), "%s", title));
+                    h.proximityUUID.setText(b.getUUID().toUpperCase() + "#" + b.getMajor() + "#" + b.getMinor());
                     break;
             }
         }
