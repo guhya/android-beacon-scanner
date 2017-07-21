@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimaryDark">#1976D2</color>
     <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryLight">#BBDEFB</color>
+    <color name="colorPrimaryLight">#bbdefb</color>
     <color name="colorAccent">#03A9F4</color>
     <color name="primaryText">#212121</color>
     <color name="secondaryText">#757575</color>
@@ -10,7 +10,7 @@
     <color name="divider">#BDBDBD</color>
 
     <!-- Bluetooth State colors -->
-    <color name="bluetoothDisabled">#F44336</color>
+    <color name="bluetoothDisabled">#f44336</color>
     <color name="bluetoothDisabledLight">#FFCDD2</color>
 
     <color name="bluetoothTurningOff">#FF9800</color>
@@ -21,5 +21,5 @@
 
     <color name="bgMoreInfo">#455A64</color>
     <color name="progressColor">#FFC107</color>
-    <color name="colorPauseFab">#EF5350 </color>
+    <color name="colorPauseFab">#ef5350</color>
 </resources>

@@ -4,17 +4,29 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.bridou_n.beaconscanner.R;
 import com.bridou_n.beaconscanner.models.BeaconSaved;
 import com.bridou_n.beaconscanner.utils.CountHelper;
+import com.bridou_n.beaconscanner.utils.EwBeacon;
+import com.bridou_n.beaconscanner.utils.EwRoute;
+import com.bridou_n.beaconscanner.utils.GetBeaconTask;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.text.DateFormat;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 import butterknife.BindView;
@@ -56,6 +68,8 @@ public class BeaconsRecyclerViewAdapter extends RealmRecyclerViewAdapter<BeaconS
         @BindView(R.id.uptime) TextView uptime;
         @BindView(R.id.temperature) TextView temperature;
         @BindView(R.id.last_seen) TextView lastSeen;
+        @BindView(R.id.routeLayout) LinearLayout routeLayout;
+
         BeaconsRecyclerViewAdapter adapter;
 
         public BaseHolder(View itemView, BeaconsRecyclerViewAdapter adapter) {
@@ -75,6 +89,23 @@ public class BeaconsRecyclerViewAdapter extends RealmRecyclerViewAdapter<BeaconS
                 adapter.notifyItemChanged(adapter.expandedPosition);
                 adapter.expandedPosition = -1;
             } else {
+                try {
+                    String routeJsonResult = new GetBeaconTask().execute("http://intra.ewideplus.com/ewIntraBeacon/getDeviceList.asp").get();
+                    Type type = new TypeToken<List<EwRoute>>(){}.getType();
+                    List<EwRoute> routeList = new Gson().fromJson(routeJsonResult, type);
+
+                    for(EwRoute route : routeList){
+                        TextView tv = new TextView(routeLayout.getContext());
+                        tv.setText(route.getStopName());
+                        routeLayout.addView(tv);
+                    }
+
+                    Snackbar.make(this.moreInfo, "Getting route list", Snackbar.LENGTH_LONG).show();
+                    Log.d("ewide", "" + routeJsonResult);
+                }catch (Exception e){
+                    Log.d("ewide", "Cannot get beacon device list");
+                    e.printStackTrace();
+                }
                 // Set the current position to "expanded"
                 adapter.expandedPosition = getAdapterPosition();
                 adapter.notifyItemChanged(getAdapterPosition());

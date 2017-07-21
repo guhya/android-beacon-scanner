@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -38,6 +39,7 @@ import com.bridou_n.beaconscanner.models.BeaconSaved;
 import com.bridou_n.beaconscanner.utils.BluetoothManager;
 import com.bridou_n.beaconscanner.utils.DividerItemDecoration;
 import com.bridou_n.beaconscanner.utils.EwBeacon;
+import com.bridou_n.beaconscanner.utils.EwRoute;
 import com.bridou_n.beaconscanner.utils.GetBeaconTask;
 import com.bridou_n.beaconscanner.utils.PreferencesHelper;
 import com.getkeepsafe.taptargetview.TapTarget;
@@ -122,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
         //Populate beacon from database
         populateBeacon();
 
-        beaconResults = realm.where(BeaconSaved.class).findAllSortedAsync(new String[]{"lastMinuteSeen", "distance"}, new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
+        beaconResults = realm.where(BeaconSaved.class).lessThan("distance", 1.0).findAllSorted(new String[]{"lastMinuteSeen", "distance"}, new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
 
         beaconsRv.setHasFixedSize(true);
         beaconsRv.setLayoutManager(new LinearLayoutManager(this));
@@ -328,7 +330,6 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
                     .subscribe(e -> {
                         if (e instanceof Events.RangeBeacon) {
                             updateUiWithBeaconsArround(((Events.RangeBeacon) e).getBeacons());
-                            Thread.sleep(1000);
                         }
                     });
 
@@ -484,18 +485,16 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, E
 
     private void populateBeacon(){
         try {
-            String jsonResult = new GetBeaconTask().execute("").get();
+            String beaconJsonResult = new GetBeaconTask().execute("http://intra.ewideplus.com/ewIntraBeacon/getBeaconList.asp").get();
             Type type = new TypeToken<List<EwBeacon>>(){}.getType();
-            List<EwBeacon> list = new Gson().fromJson(jsonResult, type);
+            List<EwBeacon> beaconList = new Gson().fromJson(beaconJsonResult, type);
             beaconMap = new HashMap<String, EwBeacon>();
-            for (int i=0;i<list.size();i++) {
-                EwBeacon x = list.get(i);
-                Log.d("ewide", "" + x.getBeaconId() + " " + x.getLocation());
+            for (int i=0;i<beaconList.size();i++) {
+                EwBeacon x = beaconList.get(i);
                 beaconMap.put(x.getBeaconId(), x);
             }
-
-            Snackbar.make(this.rootView, "Getting device list", Snackbar.LENGTH_LONG).show();
-            Log.d("ewide", "" + jsonResult);
+            Snackbar.make(this.rootView, "Getting beacon list", Snackbar.LENGTH_LONG).show();
+            Log.d("ewide", "" + beaconJsonResult);
         }catch (Exception e){
             Log.d("ewide", "Cannot get beacon device list");
             e.printStackTrace();

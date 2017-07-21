@@ -47,12 +47,12 @@
         <!-- Actual content -->
         <android.support.v7.widget.RecyclerView
             android:id="@+id/beacons_rv"
-            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/bluetooth_state"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:scrollbars="vertical" />
+            android:scrollbars="vertical"
+            android:visibility="gone"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <!-- Empty view -->
         <RelativeLayout
